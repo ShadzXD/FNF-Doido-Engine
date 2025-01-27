@@ -1,5 +1,7 @@
 package backend.utils;
 
+import flixel.util.typeLimit.OneOfTwo;
+
 typedef DialogueData = {
 	var pages:Array<DialoguePage>;
 }
@@ -30,6 +32,8 @@ typedef DialoguePage = {
 	var ?music:String;
 	var ?clickSfx:String;
 	var ?scrollSfx:Array<String>;
+	// emotes
+	var ?emotes:Array<DialogueSprite>;
 	// event
 	var ?events:Array<DialogueEvent>;
 }
@@ -42,7 +46,7 @@ typedef DialogueSprite = {
 	var ?y:Float;
 	var ?screenCenter:String;
 	// other sprite stuff
-	var ?scale:Float;
+	var ?scale:OneOfTwo<Float, Array<Float>>;
 	var ?alpha:Float;
 	// flipping
 	var ?flipX:Bool;
@@ -108,8 +112,12 @@ class DialogueUtil
 							
 							// character
 							char: 'senpai',
+
+							emotes: [
+								{name: "smile", image: "smile", x: 893, y: 480}
+							],
 							
-							text: 'Ah, a new fair maiden has come in search of true love!'
+							text: 'Ah, a new fair maiden has come %smile in search of true love!'
 						},
 						{
 							text: 'A serenade between gentlemen shall decide where her beautiful heart shall reside.'

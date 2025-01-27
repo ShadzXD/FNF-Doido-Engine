@@ -203,8 +203,15 @@ class DialogueImg extends DialogueObj
 		else
 			loadGraphic(Paths.image(imgData.image));
 		
-		if (imgData.scale != null)
-			scale.set(imgData.scale, imgData.scale);
+		if (imgData.scale != null) {
+			if(imgData.scale is Float)
+				scale.set(imgData.scale, imgData.scale);
+			else if(imgData.scale is Array) {
+				var narray:Array<Dynamic> = cast(imgData.scale, Array<Dynamic>);
+				if(narray.length >= 2)
+					scale.set(narray[0], narray[1]);
+			}
+		}
 
 		updateHitbox();
 

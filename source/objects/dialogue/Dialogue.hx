@@ -19,6 +19,7 @@ class Dialogue extends FlxGroup
 		grpChar = new FlxTypedGroup<DialogueChar>();
 		grpBg = new FlxTypedGroup<DialogueImg>();
 		grpFg = new FlxTypedGroup<DialogueImg>();
+		grpEm = new FlxTypedGroup<DialogueImg>();
 		box = new DialogueBox();
 		
 		text = new FlxText(0, 0, 0, "");
@@ -41,6 +42,8 @@ class Dialogue extends FlxGroup
 		add(box);
 		add(text);
 		add(textAlphabet);
+
+		add(grpEm);
 
 		#if !TOUCH_CONTROLS
 		var controlGuide = new FlxText(0,0,0,"Press BACK to skip.\nPress TAB/Y to open Text Log.");
@@ -71,6 +74,7 @@ class Dialogue extends FlxGroup
 	public var grpChar:FlxTypedGroup<DialogueChar>;
 	public var grpBg:FlxTypedGroup<DialogueImg>;
 	public var grpFg:FlxTypedGroup<DialogueImg>;
+	public var grpEm:FlxTypedGroup<DialogueImg>;
 	public var text:FlxText;
 	public var textAlphabet:Alphabet;
 	
@@ -92,9 +96,41 @@ class Dialogue extends FlxGroup
 		var spawnedChars:Array<String> = [];
 		var spawnedBgs:Array<String> = [];
 		var spawnedFgs:Array<String> = [];
+		var spawnedEms:Array<String> = [];
+		var checkedFonts:Array<String> = [];
 
 		for(page in data.pages)
 		{
+			if(page.fontFamily != null)
+			{
+				if(!checkedFonts.contains(page.fontFamily) && page.fontFamily != "Alphabet")
+				{
+					var cText:FlxText;
+					cText = new FlxText(0, 0, 0, "");
+					cText.setFormat(Main.gFont, 36, 0xFFFFFFFF, LEFT);
+
+					if(page.fontBorderType != null)
+						fontBorderType = CoolUtil.stringToBorder(page.fontBorderType);
+					if(page.fontBorderColor != null)
+						fontBorderColor = page.fontBorderColor;
+					if(page.fontBorderSize != null)
+						fontBorderSize = page.fontBorderSize;
+					
+					cText.setBorderStyle(fontBorderType, fontBorderColor, fontBorderSize);
+					
+					if(page.fontScale != null)
+					{
+						fontScale = page.fontScale;
+						cText.size = Math.floor(36 * fontScale);
+						cText.updateHitbox();
+					}
+					if(page.fontBold != null)
+						cText.bold = page.fontBold;
+
+					spaceWidths.set(page.fontFamily, cText.width);
+				}
+			}
+
 			if(page.boxSkin != null)
 				reloadBox(page.boxSkin);
 
@@ -123,6 +159,17 @@ class Dialogue extends FlxGroup
 					var fg = new DialogueImg(page.foreground);
 					grpFg.add(fg);
 					spawnedFgs.push(page.foreground.image);
+				}
+			}
+
+			if(page.emotes != null) {
+				for (emote in page.emotes) {
+					if(!spawnedEms.contains(emote.image) && Paths.fileExists('images/${emote.image}.png')) {
+						var em = new DialogueImg(emote);
+						grpEm.add(em);
+						spawnedEms.push(emote.image);
+						emotes.push(emote.name);
+					}
 				}
 			}
 
@@ -168,7 +215,6 @@ class Dialogue extends FlxGroup
 			FlxG.state.openSubState(new subStates.DialogueHistorySubState(pastData));
 		}
 
-		
 		if(isTyping)
 		{
 			text.text = typeTxt.substring(0, typeLoop);
@@ -201,17 +247,60 @@ class Dialogue extends FlxGroup
 			textAlphabet.setPosition(text.x, text.y);
 		}
 	}
+
+	var emotes:Array<String> = [];
+	var spaceWidths:Map<String, Float> = [];
 	
 	var typeLoop:Int = 0;
 	var typeTimer:Float = 0;
 	var isTyping:Bool = false;
 	var typeTxt:String = "";
-	public function startTyping(typeTxt:String = '')
+	public function startTyping(typeTxt:String = '', spaceWidth:Float = 0)
 	{
 		typeLoop = 0;
 		typeTimer = 0;
 		isTyping = true;
-		this.typeTxt = typeTxt;
+		this.typeTxt = convertText(typeTxt, spaceWidth);
+	}
+
+	function convertText(cText:String = '', spaceWidth:Float = 0):String
+	{
+		var words:Array<String> = cText.split(" ").copy();
+		var newText:String = "";
+
+		for (word in words) {
+			if(word.startsWith("%")) {
+				var emote:String = word.split("%").copy()[1];
+				if(emotes.contains(emote)) {
+					newText += " " + generateSpaces(emote, spaceWidth) + " ";
+					continue;
+				}
+			}
+
+			newText += word + " ";
+		}
+
+		return newText;
+	}
+
+	function generateSpaces(emote:String, spaceWidth:Float = 0):String
+	{
+		var emWidth:Float = 0;
+		for (em in grpEm) {
+			if(em.sprName == emote) {
+				emWidth = em.width;
+				break;
+			}
+		}
+
+		var spaceNumber:Int = Math.round(emWidth / spaceWidth);
+		var spaces:String = "";
+
+		for (i in 0...spaceNumber)
+		{
+			spaces += " ";
+		}
+		return spaces;
 	}
 	
 	public var curPage:Int = 0;
@@ -284,8 +373,12 @@ class Dialogue extends FlxGroup
 				textAlphabet.bold = swagPage.fontBold;
 			}
 			
-			if(swagPage.text != null)
-				startTyping(swagPage.text);
+			if(swagPage.text != null) {
+				var width:Float = 0;
+				if(emotes.length > 0)
+					width = spaceWidths.get(swagPage.fontFamily) * swagPage.fontScale;
+				startTyping(swagPage.text, width);
+			}
 
 			if(swagPage.underlayAlpha != null)
 				underlay.alpha = swagPage.underlayAlpha;
@@ -322,7 +415,24 @@ class Dialogue extends FlxGroup
 						fg.isActive = true;
 				}
 			}
-			
+
+			if(swagPage.emotes != null)
+			{
+				for(em in grpEm.members)
+				{
+					em.isActive = false;
+					for (emote in swagPage.emotes) {
+						if(em.sprName == emote.name)
+							em.isActive = true;
+					}
+				}
+			}
+			else
+			{
+				for(em in grpEm.members)
+					em.isActive = false;
+			}
+
 			if(swagPage.charAnim != null)
 			{
 				if(activeChar != null)
