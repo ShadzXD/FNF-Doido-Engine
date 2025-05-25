@@ -12,6 +12,7 @@ import flixel.tweens.FlxEase;
 import flixel.tweens.FlxTween;
 import objects.hud.HudClass.IconChange;
 import states.PlayState;
+import flixel.util.FlxStringUtil;
 
 class HudOG extends HudClass
 {
@@ -76,7 +77,8 @@ class HudOG extends HudClass
 	override function updateInfoTxt()
 	{
 		super.updateInfoTxt();
-		infoTxt.text = 'Score: ' + Timings.score;
+		
+		infoTxt.text = 'Score: ' + FlxStringUtil.formatMoney(Timings.score, false, true);
 	}
 
 	public function updateIconPos()

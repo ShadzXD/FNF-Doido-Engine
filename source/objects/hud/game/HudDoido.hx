@@ -12,6 +12,7 @@ import flixel.tweens.FlxEase;
 import flixel.tweens.FlxTween;
 import objects.hud.HudClass.IconChange;
 import states.PlayState;
+import flixel.util.FlxStringUtil;
 
 class HudDoido extends HudClass
 {
@@ -84,7 +85,7 @@ class HudDoido extends HudClass
 		super.updateInfoTxt();
 		infoTxt.text = "";
 		
-		infoTxt.text += 			'Score: '		+ Timings.score;
+		infoTxt.text += 			'Score: '		+ FlxStringUtil.formatMoney(Timings.score, false, true);
 		infoTxt.text += separator + 'Accuracy: '	+ Timings.accuracy + "%" + ' [${Timings.getRank()}]';
 		infoTxt.text += separator + 'Misses: '		+ Timings.misses;
 
