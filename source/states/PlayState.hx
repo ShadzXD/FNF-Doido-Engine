@@ -29,12 +29,16 @@ import openfl.filters.BitmapFilter;
 import openfl.filters.ShaderFilter;
 import objects.*;
 import objects.hud.*;
+import objects.hud.game.*;
 import objects.note.*;
 import objects.dialogue.Dialogue;
 import shaders.*;
 import states.editors.*;
+import states.editors.legacy.ChartingState as LegacyChartingState;
 import states.menu.*;
 import subStates.*;
+import subStates.video.*;
+import subStates.CutscenePauseSubState;
 
 #if TOUCH_CONTROLS
 import objects.mobile.Hitbox;
@@ -122,7 +126,12 @@ class PlayState extends MusicBeatState
 
 	public static var camFollow:FlxObject = new FlxObject();
 
+	// cutscene related
 	public static var playedCutscene:Bool = false;
+	var inCutscene:Bool = false;
+	var pauseCallback:Bool->Void;
+	var skipCallback:Void->Void;
+
 	public static var startedCountdown:Bool = false;
 	public static var startedSong:Bool = false;
 	
@@ -254,8 +263,15 @@ class PlayState extends MusicBeatState
 		classicZoom = defaultCamZoom;
 		
 		camGame.zoom = defaultCamZoom;
-		hudBuild = new HudClass();
-		hudBuild.setAlpha(0);
+		switch(SONG.song)
+		{
+			case "useless"|"beep-power":
+				hudBuild = new HudOG();
+				hudBuild.alpha = 0.0;
+			default:
+				hudBuild = new HudDoido();
+				hudBuild.alpha = 0.0;
+		}
 		
 		/*
 		*	if you want to change characters
@@ -307,15 +323,15 @@ class PlayState extends MusicBeatState
 
 		ghostTapping = SaveData.data.get('Ghost Tapping');
 		var downscroll:Bool = SaveData.data.get("Downscroll");
-		var doidoEasterEgg:Bool = FlxG.random.bool(0.01);
+		//var doidoEasterEgg:Bool = FlxG.random.bool(0.01);
 
 		var noteskins:Array<String> = [];
 
 		for(character in [dad.curChar, boyfriend.curChar]) {
-			if(doidoEasterEgg) {
+			/*if(doidoEasterEgg) {
 				noteskins.push("doido");
 				continue;
-			}
+			}*/
 			
 			switch(character) {
 				case 'bf-pixel':
@@ -340,8 +356,9 @@ class PlayState extends MusicBeatState
 			strumline.scrollSpeed = SONG.speed;
 			strumline.updateHitbox();
 		}
-
-		hudBuild.updateHitbox(bfStrumline.downscroll);
+		
+		hudBuild.downscroll = SaveData.data.get("Downscroll");
+		hudBuild.updatePositions();
 
 		var daSong:String = SONG.song.toLowerCase();
 
@@ -439,8 +456,18 @@ class PlayState extends MusicBeatState
 				#end
 				
 				case 'thorns':
+					inCutscene = true;
+
+					#if TOUCH_CONTROLS
+					createPad("pause", [camOther]);
+					#end
+
 					CoolUtil.playMusic('dialogue/lunchbox-scary');
 					Paths.preloadSound('sounds/dialogue/senpai/senpai_dies');
+
+					var senpaiDies:FlxSound;
+					senpaiDies = new FlxSound();
+
 					var red = new FlxSprite().makeGraphic(FlxG.width * 2, FlxG.height * 2, 0xFFff1b31);
 					red.cameras = [camHUD];
 					red.scrollFactor.set();
@@ -461,6 +488,27 @@ class PlayState extends MusicBeatState
 					add(spirit);
 					
 					spirit.alpha = 0;
+
+					skipCallback = () -> {
+						inCutscene = false;
+
+						CoolUtil.flash(camHUD, 0.6, 0xFFff1b31, true);
+						remove(red);
+						remove(spirit);
+						remove(senpaiDies);
+
+						new FlxTimer().start(0.8, function(tmr:FlxTimer)
+						{
+							startDialogue(DialogueUtil.loadDialogue('thorns', songDiff));
+						});
+					};
+
+					pauseCallback = (isPause:Bool) -> {
+						if(isPause)
+							senpaiDies.pause();
+						else
+							senpaiDies.resume();
+					};
 					
 					new FlxTimer().start(0.6, function(tmr:FlxTimer)
 					{
@@ -468,18 +516,8 @@ class PlayState extends MusicBeatState
 						FlxTween.tween(spirit, {alpha: 1}, 0.5);
 						FlxTween.tween(spirit, {alpha: 0}, 1.0, {startDelay: 3.2});
 						
-						FlxG.sound.play(Paths.sound('dialogue/senpai/senpai_dies'), 1, false, null, true, function()
-						{
-							CoolUtil.flash(camHUD, 0.6, 0xFFff1b31, true);
-							//camHUD.flash(0xFFff1b31, 0.6, null, true);
-							remove(red);
-							remove(spirit);
-							
-							new FlxTimer().start(0.8, function(tmr:FlxTimer)
-							{
-								startDialogue(DialogueUtil.loadDialogue('thorns', songDiff));
-							});
-						});
+						senpaiDies.loadEmbedded(Paths.sound('dialogue/senpai/senpai_dies'), false, true, skipCallback);
+						senpaiDies.play();
 					});
 					
 				default:
@@ -524,10 +562,10 @@ class PlayState extends MusicBeatState
 				}
 			}
 			
-			// when the girl say "one" the hud appears
+			// when the girl says "one" the hud appears
 			if(daCount == 2)
 			{
-				hudBuild.setAlpha(1, Conductor.crochet * 2 / 1000);
+				FlxTween.tween(hudBuild, {alpha: 1.0}, Conductor.crochet * 2 / 1000);
 			}
 
 			if(daCount == 4)
@@ -823,13 +861,13 @@ class PlayState extends MusicBeatState
 	
 	public function popUpRating(note:Note, strumline:Strumline, miss:Bool = false)
 	{
-		// return;
 		var thisChar = strumline.character.char;
-		var noteDiff:Float = Math.abs(note.noteDiff());
-		if(strumline.botplay)
-			noteDiff = 0;
-		else
-			if(note.isHold && !miss)
+		var noteDiff:Float = 0;
+		if(!strumline.botplay && !miss)
+		{
+			if(!note.isHold)
+				noteDiff = Math.abs(note.noteDiff());
+			else
 			{
 				noteDiff = Timings.minTiming;
 				var holdPercent:Float = (note.holdHitLength / note.holdLength);
@@ -837,6 +875,7 @@ class PlayState extends MusicBeatState
 					if(holdPercent >= timing[0] && noteDiff > timing[1])
 						noteDiff = timing[1];
 			}
+		}
 
 		var rating:String = Timings.diffToRating(noteDiff);
 		var judge:Float = Timings.diffToJudge(noteDiff);
@@ -909,6 +948,10 @@ class PlayState extends MusicBeatState
 			// regains your health only if you hold it entirely
 			if(note.isHold)
 				health += 0.05 * (note.holdHitLength / note.holdLength);
+
+			// adding timings
+			Timings.notesHit++;
+			Timings.ratingCount.set(rating, Timings.ratingCount.get(rating) + 1);
 			
 			if(rating == "shit")
 			{
@@ -917,7 +960,7 @@ class PlayState extends MusicBeatState
 			}
 		}
 		
-		hudBuild.updateText();
+		hudBuild.updateInfoTxt();
 		
 		var daRating = new Rating(rating, Timings.combo, note.assetModifier);
 
@@ -929,27 +972,7 @@ class PlayState extends MusicBeatState
 			prevRating = daRating;
 		}
 		
-		if(SaveData.data.get("Ratings on HUD"))
-		{
-			hudBuild.ratingGrp.add(daRating);
-			
-			for(item in daRating.members)
-				item.cameras = [camHUD];
-			
-			var daX:Float = (FlxG.width / 2);
-			if(SaveData.data.get("Middlescroll"))
-				daX -= FlxG.width / 4;
-
-			daRating.setPos(daX, SaveData.data.get('Downscroll') ? FlxG.height - 100 : 100);
-		}
-		else
-		{
-			add(daRating);
-			daRating.setPos(
-				thisChar.x + thisChar.ratingsOffset.x,
-				thisChar.y + thisChar.ratingsOffset.y
-			);
-		}
+		hudBuild.addRating(daRating);
 	}
 	
 	public var pressed:Array<Bool> 		= [];
@@ -1014,14 +1037,14 @@ class PlayState extends MusicBeatState
 		#if !mobile
 		if(FlxG.keys.justPressed.SEVEN)
 		{
-			if(ChartingState.SONG.song != SONG.song)
-				ChartingState.curSection = 0;
+			if(LegacyChartingState.SONG.song != SONG.song)
+				LegacyChartingState.curSection = 0;
 			
-			ChartingState.songDiff = songDiff;
+			LegacyChartingState.songDiff = songDiff;
 
-			ChartingState.SONG = SONG;
-			ChartingState.EVENTS = EVENTS;
-			Main.switchState(new ChartingState());
+			LegacyChartingState.SONG = SONG;
+			LegacyChartingState.EVENTS = EVENTS;
+			Main.switchState(new LegacyChartingState());
 		}
 
 		if(FlxG.keys.justPressed.EIGHT)
@@ -1037,29 +1060,45 @@ class PlayState extends MusicBeatState
 
 		if(oldIconEasterEgg)
 		{
-			if(FlxG.keys.justPressed.NINE
-			&& (FlxG.keys.pressed.SHIFT || Controls.pressed(CONTROL))
-			&& boyfriend.curChar == "bf")
+			if(hudBuild.hudName == "doido")
 			{
-				var changeBack:Bool = false;
-				var curIcon:String = hudBuild.healthBar.icons[1].curIcon;
-				if(FlxG.keys.pressed.SHIFT)
+				var hudBuild:HudDoido = cast hudBuild;
+				if(FlxG.keys.justPressed.NINE
+				&& (FlxG.keys.pressed.SHIFT || Controls.pressed(CONTROL))
+				&& boyfriend.curChar == "bf")
 				{
-					if(curIcon != 'bf-old')
-						curIcon = 'bf-old';
-					else
-						changeBack = true;
+					var changeBack:Bool = false;
+					var curIcon:String = hudBuild.iconP1.curIcon;
+					if(FlxG.keys.pressed.SHIFT)
+					{
+						if(curIcon != 'bf-old')
+							curIcon = 'bf-old';
+						else
+							changeBack = true;
+					}
+					if(Controls.pressed(CONTROL))
+					{
+						if(curIcon != 'bf-cool')
+							curIcon = 'bf-cool';
+						else
+							changeBack = true;
+					}
+					if(changeBack)
+						curIcon = boyfriend.char.curChar;
+					hudBuild.changeIcon(curIcon, PLAYER);
 				}
-				if(Controls.pressed(CONTROL))
+			}
+			if(hudBuild.hudName == "OG")
+			{
+				var hudBuild:HudOG = cast hudBuild;
+				if(FlxG.keys.justPressed.NINE)
 				{
-					if(curIcon != 'bf-cool')
-						curIcon = 'bf-cool';
-					else
-						changeBack = true;
+					var curIcon = hudBuild.iconP1.curIcon;
+					if(curIcon == "bf")
+						hudBuild.changeIcon("bf-old", PLAYER);
+					else if(curIcon == "bf-old")
+						hudBuild.changeIcon("bf", PLAYER);
 				}
-				if(changeBack)
-					curIcon = boyfriend.char.curChar;
-				hudBuild.changeIcon(1, curIcon);
 			}
 		}
 		#end
@@ -1568,6 +1607,7 @@ class PlayState extends MusicBeatState
 	{
 		super.stepHit();
 		stageBuild.stepHit(curStep);
+		hudBuild.stepHit(curStep);
 		syncSong();
 		
 		callScript("stepHit", [curStep]);
@@ -1669,6 +1709,31 @@ class PlayState extends MusicBeatState
 
 	public function pauseSong()
 	{
+		if(inCutscene) {
+			if(pauseCallback != null)
+				pauseCallback(true);
+
+			paused = true;
+			CoolUtil.activateTimers(false);
+			discordUpdateTime = 0.0;
+			openSubState(new CutscenePauseSubState(function(exit:PauseExit) {
+				switch (exit) {
+					case SKIP:
+						if(skipCallback != null)
+							skipCallback();
+					case RESTART:
+						playedCutscene = false;
+						Main.skipStuff();
+						Main.resetState();
+					default:
+						if(pauseCallback != null)
+							pauseCallback(false);
+				}
+
+				paused = false;
+			}));
+		}
+
 		if(!startedCountdown || endedSong || paused || isDead) return;
 		
 		paused = true;
@@ -1708,8 +1773,7 @@ class PlayState extends MusicBeatState
 		if(iconToo)
 		{
 			// updating icons
-			var daID:Int = (char.isPlayer ? 1 : 0);
-			hudBuild.changeIcon(daID, char.curChar);
+			hudBuild.changeIcon(char.curChar, char.isPlayer ? PLAYER : ENEMY);
 		}
 		
 		var evilTrail = char._dynamic["evilTrail"];
@@ -1765,13 +1829,12 @@ class PlayState extends MusicBeatState
 					if(note.strumlineID == strumline.ID)
 						thisStrumline = strumline;
 				
-				if(thisStrumline.customData) continue;
+				if(thisStrumline.customData || note.gotHit) continue;
 				if(!thisStrumline.isPlayer)
 					note.visible = !SaveData.data.get('Middlescroll');
-				if(note.gotHit)
-					note.visible = false;
 			}
-			hudBuild.updateHitbox(bfStrumline.downscroll);
+			hudBuild.downscroll = SaveData.data.get('Downscroll');
+			hudBuild.updatePositions();
 			updateNotes();
 		}
 
@@ -1807,7 +1870,7 @@ class PlayState extends MusicBeatState
 				loopGroup(this);
 			
 			case 'Song Timer':
-				hudBuild.timeTxt.visible = SaveData.data.get('Song Timer');
+				hudBuild.enableTimeTxt(SaveData.data.get('Song Timer'));
 		}
 	}
 

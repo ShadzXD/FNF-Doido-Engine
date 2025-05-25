@@ -20,10 +20,9 @@ import openfl.net.FileReference;
 import backend.game.GameData.MusicBeatState;
 import backend.utils.CharacterUtil;
 import objects.Character;
-import objects.hud.Rating;
 import objects.menu.DoidoSlider;
 import states.*;
-import subStates.editors.ChooserSubState;
+import subStates.editors.legacy.ChooserSubState as LegacyChooserSubState;
 
 class CharacterEditorState extends MusicBeatState
 {
@@ -92,13 +91,6 @@ class CharacterEditorState extends MusicBeatState
 		//dude.setPosition(0,0);
 	}
 	
-	function spawnRating()
-	{
-		var lol = new Rating("sick", FlxG.random.int(900, 999));
-		lol.setPos(char.x + char.ratingsOffset.x, char.y + char.ratingsOffset.y);
-		add(lol);
-	}
-	
 	var changeInputX:FlxUIInputText;
 	var changeInputY:FlxUIInputText;
 	var checkCamFollow:FlxUICheckBox;
@@ -112,8 +104,6 @@ class CharacterEditorState extends MusicBeatState
 		var grid = FlxGridOverlay.create(32, 32, FlxG.width * 2, FlxG.height * 2);
 		//grid.screenCenter();
 		add(grid);
-		
-		Rating.preload("base");
 		
 		camMain = new FlxCamera();
 		
@@ -237,7 +227,7 @@ class CharacterEditorState extends MusicBeatState
 		var charList = CharacterUtil.charList();
 
 		var charButton = new FlxUIButton(10, 25, curChar, function() {
-			openSubState(new ChooserSubState(charList, CHARACTER, function(pick:String) {
+			openSubState(new LegacyChooserSubState(charList, CHARACTER, function(pick:String) {
 				Main.switchState(new CharacterEditorState(pick));
 			}));
 		});
@@ -255,7 +245,7 @@ class CharacterEditorState extends MusicBeatState
 		var checkFlipGhost = new FlxUICheckBox(140, 50, null, null, "Ghost FlipX", 100);
 		var checkShowGhost = new FlxUICheckBox(140, 75, null, null, "Show Ghost", 100);
 		var ghostButton = new FlxUIButton(140, 25, ghost.curChar, function() {
-			openSubState(new ChooserSubState(charList, CHARACTER, function(pick:String) {
+			openSubState(new LegacyChooserSubState(charList, CHARACTER, function(pick:String) {
 				ghost = reloadChar(ghost, pick, true);
 				checkFlipGhost.callback();
 				checkShowGhost.callback();
@@ -327,7 +317,7 @@ class CharacterEditorState extends MusicBeatState
 				}
 			}
 		}
-		var thoseButtons:Array<String> = ["animation", "global", "camera", "ratings"];
+		var thoseButtons:Array<String> = ["animation", "global", "camera"];
 		for(i in 0...thoseButtons.length)
 		{
 			var butt = new FlxButton(
@@ -456,13 +446,6 @@ class CharacterEditorState extends MusicBeatState
 									ghost.playAnim(char.curAnimName, true);
 									ghost.animOffsets = char.animOffsets;
 								}
-							
-							case "ratings":
-								if(input.name == 'inputX')
-									char.ratingsOffset.x = inputNum;
-								else
-									char.ratingsOffset.y = inputNum;
-								spawnRating();
 						}
 						updateTxt();
 				}
@@ -612,10 +595,6 @@ class CharacterEditorState extends MusicBeatState
 					} else
 						ghost.playAnim(char.curAnimName, true);
 				}
-			case "ratings":
-				char.ratingsOffset.x += x;
-				char.ratingsOffset.y += y;
-				spawnRating();
 		}
 		updateInputTxt();
 		
@@ -637,7 +616,6 @@ class CharacterEditorState extends MusicBeatState
 		exportTxt.text
 		+='\nGlobal Offset: ${char.globalOffset.x} ${char.globalOffset.y}'
 		+ '\nCamera Offset: ${char.cameraOffset.x} ${char.cameraOffset.y}'
-		+ '\nRatings Offset: ${char.ratingsOffset.x} ${char.ratingsOffset.y}'
 		+ '\nZoom (on editor): ${camMain.zoom}';
 		exportTxt.x = FlxG.width - exportTxt.width;
 		exportTxt.y = FlxG.height- exportTxt.height;
@@ -661,10 +639,6 @@ class CharacterEditorState extends MusicBeatState
 				
 				changeInputX.text = Std.string(daAnim[0]);
 				changeInputY.text = Std.string(daAnim[1]);
-			
-			case "ratings":
-				changeInputX.text = Std.string(char.ratingsOffset.x);
-				changeInputY.text = Std.string(char.ratingsOffset.y);
 		}
 	}
 
@@ -674,7 +648,6 @@ class CharacterEditorState extends MusicBeatState
 		
 		exportData.globalOffset = [char.globalOffset.x, char.globalOffset.y];
 		exportData.cameraOffset = [char.cameraOffset.x, char.cameraOffset.y];
-		exportData.ratingsOffset= [char.ratingsOffset.x, char.ratingsOffset.y];
 		
 		for(anim => offsets in char.animOffsets)
 			exportData.animOffsets.push([anim, offsets[0], offsets[1]]);
