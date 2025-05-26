@@ -1,27 +1,9 @@
 package backend.utils;
 
-typedef CharacterJSON = {
-	var anims:Array<CharacterAnim>;
+typedef DoidoOffsets = {
+	var animOffsets:Array<Array<Dynamic>>;
 	var globalOffset:Array<Float>;
 	var cameraOffset:Array<Float>;
-	var ratingsOffset:Array<Float>;
-	var spritesheet:String;
-	var ?extrasheets:Array<String>;
-	var ?spriteType:String;
-	var flipX:Bool;
-	var antialiasing:Bool;
-	var scale:Float;
-	var ?idleAnims: Array<String>;
-	var ?deathChar:String;
-}
-
-typedef CharacterAnim = {
-	var animation:String;
-	var prefix:String;
-	var fps:Float;
-	var loop:Bool;
-	var frames:Array<Int>;
-	var offset:Array<Float>;
 }
 
 typedef DoidoCharacter = {
@@ -40,18 +22,14 @@ enum SpriteType {
 
 class CharacterUtil
 {
-	inline public static function defaultJson():CharacterJSON
+	inline public static function defaultOffsets():DoidoOffsets
 	{
 		return {
-			anims: [],
+			animOffsets: [
+				//["idle",0,0],
+			],
 			globalOffset: [0,0],
-			cameraOffset: [0,0],
-			ratingsOffset:[0,0],
-			spritesheet: "",
-			spriteType: "Sparrow",
-			flipX: false,
-			antialiasing: true,
-			scale: 1
+			cameraOffset: [0,0]
 		};
 	}
 
@@ -68,12 +46,24 @@ class CharacterUtil
 
 	public static function charList():Array<String>
 	{
-			final readedDir = Paths.readDir('characters/', [".json"]);
-		var returnShit:Array<String> = [];
-		for (file in readedDir)
-			if (file.endsWith(".json"))
-				returnShit.push(file.split(".json")[0]);
-
-		return returnShit;
+		return [
+			"dad",
+			"gf",
+			"bf",
+			"bf-dead",
+			"bf-pixel",
+			"bf-pixel-dead",
+			"gf-pixel",
+			"spooky",
+			"spooky-player",
+			"luano-day",
+			"luano-night",
+			"senpai",
+			"senpai-angry",
+			"spirit",
+			"gemamugen",
+			"zero",
+			"face"
+		];
 	}
 }
