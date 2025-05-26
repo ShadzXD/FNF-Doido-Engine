@@ -1,0 +1,119 @@
+{
+	"globalOffset": [
+		0,
+		0
+	],
+	"flipX": true,
+	"spritesheet": "bf/BOYFRIEND",
+	"anims": [
+		{
+			"frames": [],
+			"prefix": "BF idle dance",
+			"fps": 24,
+			"loop": false,
+			"animation": "idle",
+			"offset": [
+				0,
+				0
+			]
+		},
+		{
+			"frames": [],
+			"prefix": "BF NOTE LEFT0",
+			"fps": 24,
+			"loop": false,
+			"animation": "singLEFT",
+			"offset": [
+				12,
+				-6
+			]
+		},
+		{
+			"frames": [],
+			"prefix": "BF NOTE DOWN0",
+			"fps": 24,
+			"loop": false,
+			"animation": "singDOWN",
+			"offset": [
+				-12,
+				-50
+			]
+		},
+		{
+			"frames": [],
+			"prefix": "BF NOTE UP0",
+			"fps": 24,
+			"loop": false,
+			"animation": "singUP",
+			"offset": [
+				-41,
+				32
+			]
+		},
+		{
+			"frames": [],
+			"prefix": "BF NOTE RIGHT0",
+			"fps": 24,
+			"loop": false,
+			"animation": "singRIGHT",
+			"offset": [
+				-46,
+				-6
+			]
+		},
+		{
+			"frames": [],
+			"prefix": "BF NOTE LEFT MISS",
+			"fps": 24,
+			"loop": false,
+			"animation": "singLEFTmiss",
+			"offset": [
+				10,
+				18
+			]
+		},
+		{
+			"frames": [],
+			"prefix": "BF NOTE DOWN MISS",
+			"fps": 24,
+			"loop": false,
+			"animation": "singDOWNmiss",
+			"offset": [
+				-11,
+				-22
+			]
+		},
+		{
+			"frames": [],
+			"prefix": "BF NOTE UP MISS",
+			"fps": 24,
+			"loop": false,
+			"animation": "singUPmiss",
+			"offset": [
+				-36,
+				28
+			]
+		},
+		{
+			"frames": [],
+			"prefix": "BF NOTE RIGHT MISS",
+			"fps": 24,
+			"loop": false,
+			"animation": "singRIGHTmiss",
+			"offset": [
+				-45,
+				21
+			]
+		}
+	],
+	"ratingsOffset": [
+		0,
+		0
+	],
+	"cameraOffset": [
+		0,
+		-80
+	],
+	"antialiasing": true,
+	"scale": 1
+}
