@@ -127,6 +127,10 @@ class HudOG extends HudClass
 				FlxMath.lerp(icon.scale.y, 1, FlxG.elapsed * 6)
 			);
 			icon.updateHitbox();
+					if(!icon.isPlayer)
+				icon.setAnim(2 - health);
+			else
+				icon.setAnim(health);
 		}
 		updateIconPos();
 	}
@@ -156,7 +160,7 @@ class HudOG extends HudClass
 		{
 			for(icon in [iconP1, iconP2])
 			{
-				icon.scale.set(1.3,1.3);
+				icon.scale.set(1.1,1.1);
 				icon.updateHitbox();
 				updateIconPos();
 			}

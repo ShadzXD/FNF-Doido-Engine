@@ -1,0 +1,119 @@
+{
+	"globalOffset": [
+		0,
+		0
+	],
+	"flipX": true,
+	"spritesheet": "pico/Pico_Basic",
+	"anims": [
+		{
+			"frames": [],
+			"prefix": "Pico Idle Dance",
+			"fps": 24,
+			"loop": false,
+			"animation": "idle",
+			"offset": [
+				0,
+				0
+			]
+		},
+		{
+			"frames": [],
+			"prefix": "Pico NOTE LEFT",
+			"fps": 24,
+			"loop": false,
+			"animation": "singLEFT",
+			"offset": [
+				-88,
+				-6
+			]
+		},
+		{
+			"frames": [],
+			"prefix": "Pico Down Note",
+			"fps": 24,
+			"loop": false,
+			"animation": "singDOWN",
+			"offset": [
+				-32,
+				-80
+			]
+		},
+		{
+			"frames": [],
+			"prefix": "pico Up note",
+			"fps": 24,
+			"loop": false,
+			"animation": "singUP",
+			"offset": [
+				-41,
+				32
+			]
+		},
+		{
+			"frames": [],
+			"prefix": "Pico Note Right",
+			"fps": 24,
+			"loop": false,
+			"animation": "singRIGHT",
+			"offset": [
+				54,
+				3
+			]
+		},
+		{
+			"frames": [],
+			"prefix": "BF NOTE LEFT MISS",
+			"fps": 24,
+			"loop": false,
+			"animation": "singLEFTmiss",
+			"offset": [
+				10,
+				18
+			]
+		},
+		{
+			"frames": [],
+			"prefix": "BF NOTE DOWN MISS",
+			"fps": 24,
+			"loop": false,
+			"animation": "singDOWNmiss",
+			"offset": [
+				-11,
+				-22
+			]
+		},
+		{
+			"frames": [],
+			"prefix": "BF NOTE UP MISS",
+			"fps": 24,
+			"loop": false,
+			"animation": "singUPmiss",
+			"offset": [
+				-36,
+				28
+			]
+		},
+		{
+			"frames": [],
+			"prefix": "BF NOTE RIGHT MISS",
+			"fps": 24,
+			"loop": false,
+			"animation": "singRIGHTmiss",
+			"offset": [
+				-45,
+				21
+			]
+		}
+	],
+	"ratingsOffset": [
+		0,
+		0
+	],
+	"cameraOffset": [
+		0,
+		-80
+	],
+	"antialiasing": true,
+	"scale": 1
+}

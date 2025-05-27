@@ -115,7 +115,7 @@ class PlayState extends MusicBeatState
 	public var camStrum:FlxCamera;
 	public var camOther:FlxCamera; // used so substates dont collide with camHUD.alpha or camHUD.visible
 	
-	public static var cameraSpeed:Float = 1.0;
+	public static var cameraSpeed:Float = 0.6;
 	public static var defaultCamZoom:Float = 1.0;
 	public static var beatCamZoom:Float = 0.0;
 	public static var extraCamZoom:Float = 0.0;
@@ -159,7 +159,7 @@ class PlayState extends MusicBeatState
 	public static function resetStatics()
 	{
 		health = 1;
-		cameraSpeed = 1.0;
+		cameraSpeed = 0.6;
 		defaultCamZoom = 1.0;
 		beatCamZoom = 0.0;
 		extraCamZoom = 0.0;
@@ -367,7 +367,7 @@ class PlayState extends MusicBeatState
 
 		vocals = new FlxSound();
 		if(SONG.needsVoices)
-			vocals.loadEmbedded(Paths.vocals(daSong, songDiff, "-player"), false, false);
+		vocals.loadEmbedded(Paths.vocals(daSong, songDiff, "-player"), false, false);
 
 		songLength = inst.length;
 		function addMusic(music:FlxSound):Void
@@ -542,10 +542,10 @@ class PlayState extends MusicBeatState
 		var countTimer = new FlxTimer().start(Conductor.crochet / 1000, function(tmr:FlxTimer)
 		{
 			Conductor.songPos = -Conductor.crochet * (4 - daCount);
-			
-			if(daCount == 0)
+			switch(daCount)
 			{
-				startedCountdown = true;
+				case 0:
+						startedCountdown = true;
 				for(strumline in strumlines.members)
 				{
 					for(strum in strumline.strumGroup)
@@ -560,17 +560,11 @@ class PlayState extends MusicBeatState
 						});
 					}
 				}
-			}
-			
-			// when the girl says "one" the hud appears
-			if(daCount == 2)
-			{
+				case 2:
 				FlxTween.tween(hudBuild, {alpha: 1.0}, Conductor.crochet * 2 / 1000);
-			}
-
-			if(daCount == 4)
-			{
+				case 4:
 				startSong();
+
 			}
 
 			if(daCount != 4)
@@ -1058,49 +1052,7 @@ class PlayState extends MusicBeatState
 			Main.switchState(new CharacterEditorState(char.curChar, true));
 		}
 
-		if(oldIconEasterEgg)
-		{
-			if(hudBuild.hudName == "doido")
-			{
-				var hudBuild:HudDoido = cast hudBuild;
-				if(FlxG.keys.justPressed.NINE
-				&& (FlxG.keys.pressed.SHIFT || Controls.pressed(CONTROL))
-				&& boyfriend.curChar == "bf")
-				{
-					var changeBack:Bool = false;
-					var curIcon:String = hudBuild.iconP1.curIcon;
-					if(FlxG.keys.pressed.SHIFT)
-					{
-						if(curIcon != 'bf-old')
-							curIcon = 'bf-old';
-						else
-							changeBack = true;
-					}
-					if(Controls.pressed(CONTROL))
-					{
-						if(curIcon != 'bf-cool')
-							curIcon = 'bf-cool';
-						else
-							changeBack = true;
-					}
-					if(changeBack)
-						curIcon = boyfriend.char.curChar;
-					hudBuild.changeIcon(curIcon, PLAYER);
-				}
-			}
-			if(hudBuild.hudName == "OG")
-			{
-				var hudBuild:HudOG = cast hudBuild;
-				if(FlxG.keys.justPressed.NINE)
-				{
-					var curIcon = hudBuild.iconP1.curIcon;
-					if(curIcon == "bf")
-						hudBuild.changeIcon("bf-old", PLAYER);
-					else if(curIcon == "bf-old")
-						hudBuild.changeIcon("bf", PLAYER);
-				}
-			}
-		}
+		
 		#end
 		
 		// syncSong
@@ -1207,18 +1159,6 @@ class PlayState extends MusicBeatState
 				}
 			}
 
-			for(strumline in strumlines)
-			{
-				if(SONG.song == "exploitation")
-				{
-					for(strum in strumline.strumGroup)
-						strum.angle += elapsed * (curStep % 16 <= 1 ? 128 : 8) * (strum.strumData % 2 == 0 ? 1 : -1);
-					for(note in strumline.allNotes)
-					{
-						note.noteAngle = Math.sin((Conductor.songPos - note.songTime) / 100) * 10 * (strumline.isPlayer ? 1 : -1);
-					}
-				}
-			}
 
 			updateNotes();
 			
