@@ -17,6 +17,8 @@ import states.*;
 import states.editors.legacy.ChartingState as LegacyChartingState;
 import subStates.menu.DeleteScoreSubState;
 import backend.song.Timings;
+import flixel.util.FlxStringUtil;
+import subStates.StickerSubState;
 
 using StringTools;
 
@@ -48,7 +50,17 @@ class FreeplayState extends MusicBeatState
 	var grpItems:FlxGroup;
 
 	var scoreCounter:ScoreCounter;
+		  var stickerSubState:StickerSubState;
 
+	public function new(?stickers:StickerSubState = null)
+  	{
+    	super();
+
+    		if (stickers?.members != null)
+    	{
+      	stickerSubState = stickers;
+    	}
+ 	}
 	override function create()
 	{
 		super.create();
@@ -60,7 +72,14 @@ class FreeplayState extends MusicBeatState
 		bg.scale.set(1.2,1.2); bg.updateHitbox();
 		bg.screenCenter();
 		add(bg);
-		
+		 if (stickerSubState != null)
+   			 {
+      	this.persistentUpdate = true;
+      	this.persistentDraw = true;
+
+      	openSubState(stickerSubState);
+      	stickerSubState.degenStickers();
+    	}
 		// adding songs
 		for(i in 0...SongData.weeks.length)
 		{
@@ -301,7 +320,7 @@ class ScoreCounter extends FlxGroup
 		super.update(elapsed);
 		text.text = "";
 
-		text.text +=   "HIGHSCORE: " + Math.floor(lerpValues.score);
+		text.text +=   "HIGHSCORE: " +  FlxStringUtil.formatMoney(Math.floor(lerpValues.score), false, true) ;
 		text.text += "\nACCURACY:  " +(Math.floor(lerpValues.accuracy * 100) / 100) + "%" + ' [$rank]';
 		text.text += "\nMISSES:    " + Math.floor(lerpValues.misses);
 

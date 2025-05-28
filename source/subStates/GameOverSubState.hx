@@ -84,7 +84,7 @@ class GameOverSubState extends MusicBeatSubState
 			{
 				fadeCamera().fade(FlxColor.BLACK, 0.2, false, function()
 				{
-					PlayState.sendToMenu();
+					PlayState.instance.sendToMenu();
 				}, true);
 			}
 

@@ -71,6 +71,11 @@ class Main extends Sprite
 			if (e.keyCode == FlxKey.ENTER && e.altKey)
 				e.stopImmediatePropagation();
 		}, false, 100);
+
+		final readedDir:Array<String> = Paths.readDir('images/menu/transitionSwag/stickers-set-1/');
+		for (file in readedDir)
+			if (file.endsWith(".png"))
+				Paths.dumpExclusions.push('menu/transitionSwag/stickers-set-1/' + file); //code loaded on launch so the game doesnt crash when destroying images.
 	}
 	
 	function resetCamCache()

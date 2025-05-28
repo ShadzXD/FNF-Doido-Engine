@@ -14,6 +14,8 @@ import flixel.tweens.FlxEase;
 import flixel.util.FlxTimer;
 import objects.menu.Alphabet;
 import subStates.menu.DeleteScoreSubState;
+import flixel.util.FlxStringUtil;
+import subStates.StickerSubState;
 
 class StoryMenuState extends MusicBeatState
 {
@@ -34,7 +36,18 @@ class StoryMenuState extends MusicBeatState
 	var weekNameTxt:FlxText;
 	var weekScoreTxt:FlxText;
 	var resetTxt:FlxText;
-	
+	var stickerSubState:StickerSubState;
+
+	public function new(?stickers:StickerSubState = null)
+  	{
+    	super();
+
+    		if (stickers?.members != null)
+    	{
+      	stickerSubState = stickers;
+    	}
+ 	}
+
 	override function create()
 	{
 		super.create();
@@ -53,7 +66,15 @@ class StoryMenuState extends MusicBeatState
 		
 		grpWeeks = new FlxTypedGroup<FlxSprite>();
 		add(grpWeeks);
-		
+		    if (stickerSubState != null)
+    {
+      this.persistentUpdate = true;
+      this.persistentDraw = true;
+
+      openSubState(stickerSubState);
+      stickerSubState.degenStickers();
+    }
+
 		for(i in 0...weekList.length)
 		{
 			var weekSpr = new FlxSprite().loadGraphic(Paths.image('menu/story/week/${weekList[i].weekFile}'));
@@ -219,7 +240,7 @@ class StoryMenuState extends MusicBeatState
 		if(Math.abs(scoreCount[1] - scoreCount[0]) <= 0.4)
 			scoreCount[1] = scoreCount[0];
 		
-		weekScoreTxt.text = "WEEK SCORE: " + Math.floor(scoreCount[1]);
+		weekScoreTxt.text = "WEEK SCORE: " + FlxStringUtil.formatMoney(Math.floor(scoreCount[1]), false, true) ;
 	}
 	
 	public function updateWeekPos(lerp:Float = 0)

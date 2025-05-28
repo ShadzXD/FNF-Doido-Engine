@@ -1830,7 +1830,7 @@ class PlayState extends MusicBeatState
 	}
 	
 	// substates also use this
-	public static function sendToMenu()
+	public function sendToMenu()
 	{
 		CoolUtil.playMusic();
 		resetSongStatics();
@@ -1838,10 +1838,14 @@ class PlayState extends MusicBeatState
 		if(isStoryMode)
 		{
 			isStoryMode = false;
-			Main.switchState(new StoryMenuState());
+			openSubState(new subStates.StickerSubState(null, STORY));
 		}
 		else
-			Main.switchState(new FreeplayState());
+		{
+		
+		openSubState(new subStates.StickerSubState(null, FREEPLAY));
+		}
+			//Main.switchState(new FreeplayState());
 	}
 
 	public static function loadSong(song:String)
