@@ -1,5 +1,5 @@
 
-package backend;
+package backend.game;
 
 import flixel.FlxBasic;
 import flixel.FlxSprite;

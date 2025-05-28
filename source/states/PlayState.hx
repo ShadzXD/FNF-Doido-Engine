@@ -39,7 +39,7 @@ import states.menu.*;
 import subStates.*;
 import subStates.video.*;
 import subStates.CutscenePauseSubState;
-import backend.FlxVideo;
+import backend.game.FlxVideo;
 #if TOUCH_CONTROLS
 import objects.mobile.Hitbox;
 #end
