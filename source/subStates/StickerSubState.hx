@@ -16,7 +16,6 @@ import flixel.group.FlxGroup.FlxTypedGroup;
 import flixel.util.FlxTimer;
 import flixel.math.FlxMath;
 import flixel.sound.FlxSound;
-import sys.FileSystem;
 class StickerSubState extends MusicBeatSubState
 {
   public var grpStickers:FlxTypedGroup<StickerSprite>;

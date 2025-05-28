@@ -71,11 +71,20 @@ class Main extends Sprite
 			if (e.keyCode == FlxKey.ENTER && e.altKey)
 				e.stopImmediatePropagation();
 		}, false, 100);
+	
+		  var json = Paths.json('images/menu/transitionSwag/stickers-set-1/stickers');
+   		//var jsonInfo:StickerShit = cast json;
 
-		final readedDir:Array<String> = Paths.readDir('images/menu/transitionSwag/stickers-set-1/');
-		for (file in readedDir)
-			if (file.endsWith(".png"))
-				Paths.dumpExclusions.push('menu/transitionSwag/stickers-set-1/' + file); //code loaded on launch so the game doesnt crash when destroying images.
+		    for (field in Reflect.fields(json.stickers))
+			{
+				var stickerStuff:Array<String> = Reflect.field(json.stickers, field);
+				for (keys in stickerStuff)Paths.dumpExclusions.push('menu/transitionSwag/stickers-set-1/' + keys + '.png'); //code loaded on launch so the game doesnt crash when destroying images.
+
+				
+
+			}
+			for(bruh in Paths.dumpExclusions) trace('cached sprite ' + bruh);
+
 	}
 	
 	function resetCamCache()
