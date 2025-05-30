@@ -10,6 +10,7 @@ import flixel.text.FlxText;
 import flixel.tweens.FlxEase;
 import flixel.tweens.FlxTween;
 import flixel.util.FlxTimer;
+import subStates.StickerSubState;
 
 using StringTools;
 
@@ -26,7 +27,17 @@ class MainMenuState extends MusicBeatState
 	
 	var flickMag:Float = 1;
 	var flickBtn:Float = 1;
-	
+		var stickerSubState:StickerSubState;
+
+		public function new(?stickers:StickerSubState = null)
+  	{
+    	super();
+
+    		if (stickers?.members != null)
+    	{
+      	stickerSubState = stickers;
+    	}
+ 	}
 	override function create()
 	{
 		super.create();
@@ -45,7 +56,14 @@ class MainMenuState extends MusicBeatState
 		bgMag.updateHitbox();
 		bgMag.visible = false;
 		add(bgMag);
-		
+		  if (stickerSubState != null)
+    {
+      this.persistentUpdate = true;
+      this.persistentDraw = true;
+
+      openSubState(stickerSubState);
+      stickerSubState.degenStickers();
+    }
 		if(FlxG.random.bool(0.001))
 		{
 			if(Paths.fileExists('images/herobrine.png'))
