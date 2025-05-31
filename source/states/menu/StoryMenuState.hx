@@ -240,7 +240,7 @@ class StoryMenuState extends MusicBeatState
 		if(Math.abs(scoreCount[1] - scoreCount[0]) <= 0.4)
 			scoreCount[1] = scoreCount[0];
 		
-		weekScoreTxt.text = "WEEK SCORE: " + FlxStringUtil.formatMoney(Math.floor(scoreCount[1]), false, true) ;
+		weekScoreTxt.text = "WEEK SCORE: " + FlxStringUtil.formatMoney(Math.floor(scoreCount[1]), false, true);
 	}
 	
 	public function updateWeekPos(lerp:Float = 0)

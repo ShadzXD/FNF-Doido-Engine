@@ -126,6 +126,11 @@ class HudOG extends HudClass
 				FlxMath.lerp(icon.scale.x, 1, FlxG.elapsed * 6),
 				FlxMath.lerp(icon.scale.y, 1, FlxG.elapsed * 6)
 			);
+			if(!icon.isPlayer)
+				icon.setAnim(2 - health);
+			else
+				icon.setAnim(health);
+			
 			icon.updateHitbox();
 					if(!icon.isPlayer)
 				icon.setAnim(2 - health);
