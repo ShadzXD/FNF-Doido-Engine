@@ -187,7 +187,7 @@ class PauseSubState extends MusicBeatSubState
 					case "exit to menu":
 						//Main.switchState(new MenuState());
 						persistentDraw = true;
-						PlayState.sendToMenu();
+						PlayState.instance.sendToMenu();
 				}
 			}
 

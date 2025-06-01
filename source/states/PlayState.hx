@@ -42,7 +42,7 @@ import subStates.CutscenePauseSubState;
 #if TOUCH_CONTROLS
 import objects.mobile.Hitbox;
 #end
-
+import subStates.StickerSubState;
 using StringTools;
 
 class PlayState extends MusicBeatState
@@ -114,7 +114,7 @@ class PlayState extends MusicBeatState
 	public var camStrum:FlxCamera;
 	public var camOther:FlxCamera; // used so substates dont collide with camHUD.alpha or camHUD.visible
 	
-	public static var cameraSpeed:Float = 1.0;
+	public static var cameraSpeed:Float = 0.6;
 	public static var defaultCamZoom:Float = 1.0;
 	public static var beatCamZoom:Float = 0.0;
 	public static var extraCamZoom:Float = 0.0;
@@ -158,7 +158,7 @@ class PlayState extends MusicBeatState
 	public static function resetStatics()
 	{
 		health = 1;
-		cameraSpeed = 1.0;
+		cameraSpeed = 0.6;
 		defaultCamZoom = 1.0;
 		beatCamZoom = 0.0;
 		extraCamZoom = 0.0;
@@ -1889,7 +1889,7 @@ class PlayState extends MusicBeatState
 	}
 	
 	// substates also use this
-	public static function sendToMenu()
+	public function sendToMenu()
 	{
 		CoolUtil.playMusic();
 		resetSongStatics();
@@ -1897,10 +1897,11 @@ class PlayState extends MusicBeatState
 		if(isStoryMode)
 		{
 			isStoryMode = false;
-			Main.switchState(new StoryMenuState());
+			openSubState(new StickerSubState(STORY));
 		}
 		else
-			Main.switchState(new FreeplayState());
+			openSubState(new StickerSubState(FREEPLAY));
+
 	}
 
 	public static function loadSong(song:String)
