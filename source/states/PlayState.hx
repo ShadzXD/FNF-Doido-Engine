@@ -143,6 +143,10 @@ class PlayState extends MusicBeatState
 	// to use simply set isClassicZoom to true and make an event to change zoom with no duration
 	var isClassicZoom:Bool = false;
 	var classicZoom:Float = 1.0;
+	var camOffsetNoteHit:FlxPoint;
+
+	//EDIT THIS VALUE TO CHANGE HOW MUCH THE CAMERA MOVES ON NOTE HIT!
+	public static var moveValue:Int = 30;
 
 	// This map holds which shaders are loaded, to help with disabling and enabling them in the options!
 	var tempShaders:Map<String,Array<BitmapFilter>> = [
@@ -200,6 +204,7 @@ class PlayState extends MusicBeatState
 
 	override public function create()
 	{
+		
 		super.create();
 		instance = this;
 
@@ -248,7 +253,8 @@ class PlayState extends MusicBeatState
 		FlxG.cameras.add(camHUD, false);
 		FlxG.cameras.add(camStrum, false);
 		FlxG.cameras.add(camOther, false);
-		
+		camOffsetNoteHit = new FlxPoint();
+
 		// default camera
 		FlxG.cameras.setDefaultDrawTarget(camGame, true);
 		
@@ -542,13 +548,15 @@ class PlayState extends MusicBeatState
 		{
 			Conductor.songPos = -Conductor.crochet * (4 - daCount);
 			
-			if(daCount == 0)
-			{
-				startedCountdown = true;
-				for(strumline in strumlines.members)
+			
+				switch(daCount)
 				{
-					for(strum in strumline.strumGroup)
-					{	
+					case 0:
+					startedCountdown = true;
+					for(strumline in strumlines.members)
+					{
+						for(strum in strumline.strumGroup)
+						{	
 						// dad's notes spawn backwards
 						var strumMult:Int = (strumline.isPlayer ? strum.strumData : 3 - strum.strumData);
 
@@ -557,20 +565,16 @@ class PlayState extends MusicBeatState
 							ease: FlxEase.cubeOut,
 							startDelay: Conductor.crochet / 2 / 1000 * strumMult,
 						});
+						}
 					}
-				}
-			}
+						// when the girl says "one" the hud appears
+					case 2:
+					FlxTween.tween(hudBuild, {alpha: 1.0}, Conductor.crochet * 2 / 1000);
 			
-			// when the girl says "one" the hud appears
-			if(daCount == 2)
-			{
-				FlxTween.tween(hudBuild, {alpha: 1.0}, Conductor.crochet * 2 / 1000);
-			}
 
-			if(daCount == 4)
-			{
-				startSong();
-			}
+					case 4:
+					startSong();
+				}		
 
 			if(daCount != 4)
 			{
@@ -721,7 +725,7 @@ class PlayState extends MusicBeatState
 		else
 			onNoteMiss(note, strumline);
 	}
-		
+
 	// actual note functions
 	function onNoteHit(note:Note, strumline:Strumline)
 	{
@@ -777,6 +781,19 @@ class PlayState extends MusicBeatState
 			var noteDiff:Float = Math.abs(note.noteDiff());
 			if(noteDiff <= Timings.getTimings("sick")[1] || strumline.botplay)
 				strumline.playSplash(note);
+						
+
+			switch(CoolUtil.getDirection(note.noteData))
+			{
+				case 'left':
+					noteCameraMovement(-moveValue ,0);
+				case 'down':
+					noteCameraMovement(0, moveValue);
+				case 'up':
+					noteCameraMovement( 0, -moveValue );
+				case 'right':
+					noteCameraMovement(moveValue, 0);
+			}
 		}
 
 		if(thisChar != null && !note.isHold)
@@ -784,6 +801,19 @@ class PlayState extends MusicBeatState
 			if(note.noteType != "no animation" && thisChar.specialAnim != 2)
 				thisChar.playNote(note);
 		}
+	}
+	var camMoveTween:FlxTween;
+	function noteCameraMovement(_x:Float, _y:Float)
+	{
+		if(camMoveTween != null) camMoveTween.cancel();
+		//if(camMoveTween != null) camMoveTween.cancel();
+		camMoveTween =	FlxTween.tween(camOffsetNoteHit, {x:_x,y:_y}, 0.7, {ease: FlxEase.expoOut, onComplete:function(twn:FlxTween)
+		{
+
+		}
+		
+		});
+
 	}
 	function onNoteMiss(note:Note, strumline:Strumline, ghostTap:Bool = false)
 	{
@@ -1057,49 +1087,6 @@ class PlayState extends MusicBeatState
 			Main.switchState(new CharacterEditorState(char.curChar, true));
 		}
 
-		if(oldIconEasterEgg)
-		{
-			if(hudBuild.hudName == "doido")
-			{
-				var hudBuild:HudDoido = cast hudBuild;
-				if(FlxG.keys.justPressed.NINE
-				&& (FlxG.keys.pressed.SHIFT || Controls.pressed(CONTROL))
-				&& boyfriend.curChar == "bf")
-				{
-					var changeBack:Bool = false;
-					var curIcon:String = hudBuild.iconP1.curIcon;
-					if(FlxG.keys.pressed.SHIFT)
-					{
-						if(curIcon != 'bf-old')
-							curIcon = 'bf-old';
-						else
-							changeBack = true;
-					}
-					if(Controls.pressed(CONTROL))
-					{
-						if(curIcon != 'bf-cool')
-							curIcon = 'bf-cool';
-						else
-							changeBack = true;
-					}
-					if(changeBack)
-						curIcon = boyfriend.char.curChar;
-					hudBuild.changeIcon(curIcon, PLAYER);
-				}
-			}
-			if(hudBuild.hudName == "OG")
-			{
-				var hudBuild:HudOG = cast hudBuild;
-				if(FlxG.keys.justPressed.NINE)
-				{
-					var curIcon = hudBuild.iconP1.curIcon;
-					if(curIcon == "bf")
-						hudBuild.changeIcon("bf-old", PLAYER);
-					else if(curIcon == "bf-old")
-						hudBuild.changeIcon("bf", PLAYER);
-				}
-			}
-		}
 		#end
 		
 		// syncSong
@@ -1208,6 +1195,7 @@ class PlayState extends MusicBeatState
 
 			for(strumline in strumlines)
 			{
+				/*
 				if(SONG.song == "exploitation")
 				{
 					for(strum in strumline.strumGroup)
@@ -1217,6 +1205,7 @@ class PlayState extends MusicBeatState
 						note.noteAngle = Math.sin((Conductor.songPos - note.songTime) / 100) * 10 * (strumline.isPlayer ? 1 : -1);
 					}
 				}
+					*/
 			}
 
 			updateNotes();
@@ -1517,7 +1506,7 @@ class PlayState extends MusicBeatState
 			}
 		}
 	}
-	
+
 	public function followCamSection(sect:SwagSection):Void
 	{
 		var char:Character = dadStrumline.character.char;
@@ -1554,8 +1543,8 @@ class PlayState extends MusicBeatState
 			camFollow.y += char.cameraOffset.y;
 		}
 
-		camFollow.x += offsetX;
-		camFollow.y += offsetY;
+		camFollow.x += offsetX + camOffsetNoteHit.x;
+		camFollow.y += offsetY + camOffsetNoteHit.y;
 	}
 
 	override function beatHit()
