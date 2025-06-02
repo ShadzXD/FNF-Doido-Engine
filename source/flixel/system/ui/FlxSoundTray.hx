@@ -41,7 +41,7 @@ class FlxSoundTray extends Sprite
     var bg:Bitmap = new Bitmap(Assets.getBitmapData("assets/images/soundtray/volumebox.png"));
     bg.scaleX = graphicScale;
     bg.scaleY = graphicScale;
-    //bg.smoothing = true;
+    bg.smoothing = true;
     addChild(bg);
 
     //y = -height;
