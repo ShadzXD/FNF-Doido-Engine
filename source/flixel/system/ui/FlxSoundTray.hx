@@ -1,181 +1,170 @@
 package flixel.system.ui;
 
-#if FLX_SOUND_SYSTEM
-import flixel.FlxG;
-import flixel.system.FlxAssets;
-import flixel.util.FlxColor;
-import openfl.Lib;
+import flixel.system.ui.FlxSoundTray;
 import openfl.display.Bitmap;
 import openfl.display.BitmapData;
+import openfl.utils.Assets;
 import openfl.display.Sprite;
-import openfl.text.TextField;
-import openfl.text.TextFormat;
-import openfl.text.TextFormatAlign;
-#if flash
-import flash.text.AntiAliasType;
-import flash.text.GridFitType;
-#end
+import openfl.Lib;
 
 /**
- * The flixel sound tray, the little volume meter that pops down sometimes.
+ *  Extends the default flixel soundtray, but with some art
+ *  and lil polish!
+ *
+ *  Gets added to the game in Main.hx, right after FlxGame is new'd
+ *  since it's a Sprite rather than Flixel related object
  */
 class FlxSoundTray extends Sprite
 {
-	/**
-	 * Because reading any data from DisplayObject is insanely expensive in hxcpp, keep track of whether we need to update it or not.
-	 */
-	public var active:Bool;
+  var graphicScale:Float = 0.30;
+  var lerpYPos:Float = 0;
+  var alphaTarget:Float = 0;
 
-	/**
-	 * Helps us auto-hide the sound tray after a volume change.
-	 */
-	var _timer:Float;
-
-	/**
-	 * Helps display the volume bars on the sound tray.
-	 */
+  var volumeMaxSound:String;
+  public var volumeUpSound:String;
+  public var volumeDownSound:String;
+  var _timer:Float;
 	var _bars:Array<Bitmap>;
-
-	/**
-	 * How wide the sound tray background is.
-	 */
+	public var active:Bool;
+	public var silent:Bool = false;
 	var _width:Int = 80;
 
 	var _defaultScale:Float = 2.0;
 
-	/**Whether or not changing the volume should make noise.**/
-	public var silent:Bool = false;
+  public function new()
+  {
+    // calls super, then removes all children to add our own
+    // graphics
+    super();
+    removeChildren();
 
-	/**
-	 * Sets up the "sound tray", the little volume meter that pops down sometimes.
-	 */
-	@:keep
-	public function new()
-	{
-		super();
+    var bg:Bitmap = new Bitmap(Assets.getBitmapData("assets/images/soundtray/volumebox.png"));
+    bg.scaleX = graphicScale;
+    bg.scaleY = graphicScale;
+    //bg.smoothing = true;
+    addChild(bg);
 
-		visible = false;
-		scaleX = _defaultScale;
-		scaleY = _defaultScale;
-		var tmp:Bitmap = new Bitmap(new BitmapData(_width, 30, true, 0x7F000000));
-		screenCenter();
-		addChild(tmp);
+    //y = -height;
+    visible = false;
 
-		var text:TextField = new TextField();
-		text.width = tmp.width;
-		text.height = tmp.height;
-		text.multiline = true;
-		text.wordWrap = true;
-		text.selectable = false;
+    // makes an alpha'd version of all the bars (bar_10.png)
+    var backingBar:Bitmap = new Bitmap(Assets.getBitmapData("assets/images/soundtray/bars_10.png"));
+    backingBar.x = 9;
+    backingBar.y = 5;
+    backingBar.scaleX = graphicScale;
+    backingBar.scaleY = graphicScale;
+    backingBar.smoothing = true;
+    addChild(backingBar);
+    backingBar.alpha = 0.4;
 
-		#if flash
-		text.embedFonts = true;
-		text.antiAliasType = AntiAliasType.NORMAL;
-		text.gridFitType = GridFitType.PIXEL;
-		#else
-		#end
-		var dtf:TextFormat = new TextFormat(Main.gFont, 10, 0xffffff);
-		dtf.align = TextFormatAlign.CENTER;
-		text.defaultTextFormat = dtf;
-		addChild(text);
-		text.text = "VOLUME";
-		text.y = 16;
+    // clear the bars array entirely, it was initialized
+    // in the super class
+    _bars = [];
 
-		var bx:Int = 10;
-		var by:Int = 14;
-		_bars = new Array();
+    // 1...11 due to how block named the assets,
+    // we are trying to get assets bars_1-10
+    for (i in 1...11)
+    {
+      var bar:Bitmap = new Bitmap(Assets.getBitmapData("assets/images/soundtray/bars_" + i+".png"));
+      bar.x = 9;
+      bar.y = 5;
+      bar.scaleX = graphicScale;
+      bar.scaleY = graphicScale;
+      bar.smoothing = true;
+      addChild(bar);
+      _bars.push(bar);
+    }
 
-		for (i in 0...10)
-		{
-			tmp = new Bitmap(new BitmapData(4, i + 1, false, FlxColor.WHITE));
-			tmp.x = bx;
-			tmp.y = by;
-			addChild(tmp);
-			_bars.push(tmp);
-			bx += 6;
-			by--;
-		}
+    y = -height;
+    screenCenter();
 
-		y = -height;
-		visible = false;
-	}
+    volumeUpSound = ("assets/sounds/soundtray/Volup.ogg");
+    volumeDownSound = ("assets/sounds/soundtray/Voldown.ogg");
+    volumeMaxSound = ("assets/sounds/soundtray/VolMAX.ogg");
 
-	/**
-	 * This function just updates the soundtray object.
-	 */
+    trace("Custom tray added!");
+  }
+
 	public function update(MS:Float):Void
-	{
-		// Animate stupid sound tray thing
-		if (_timer > 0)
-		{
-			_timer -= MS / 1000;
-		}
-		else if (y > -height)
-		{
-			y -= (MS / 1000) * FlxG.height * 2;
+    {
 
-			if (y <= -height)
-			{
-				visible = false;
-				active = false;
-    		}
+      y = CoolUtil.vsliceLerp(y, lerpYPos, 0.1);
+      alpha = CoolUtil.vsliceLerp(alpha, alphaTarget, 0.25);
+  
+      // Animate sound tray thing
+      if (_timer > 0)
+      {
+        _timer -= (MS / 1000);
+        alphaTarget = 1;
+      }
+      else if (y >= -height)
+      {
+        lerpYPos = -height - 10;
+        alphaTarget = 0;
+      }
+  
+      if (y <= -height)
+      {
+        visible = false;
+        active = false;
+  
+        #if FLX_SAVE
+        // Save sound preferences
+        if (FlxG.save.isBound)
+        {
+          FlxG.save.data.mute = FlxG.sound.muted;
+          FlxG.save.data.volume = FlxG.sound.volume;
+          FlxG.save.flush();
+        }
+        #end
+      }
+    }
 
-            if (FlxG.save.data != null)
-				{
-					FlxG.save.data.mute = FlxG.sound.muted;
-					FlxG.save.data.volume = FlxG.sound.volume;
-					FlxG.save.flush();
-				}
-		}
-	}
-
-	/**
-	 * Makes the little volume tray slide out.
-	 *
-	 * @param	up Whether the volume is increasing.
-	 */
-	public function show(up:Bool = false):Void
-	{
-		if (!silent)
-		{
-			var sound = Paths.sound("menu/scrollMenu");
-			if (sound != null)
-				FlxG.sound.load(sound).play();
-            ////Logs.print(up);
-		}
-
-		_timer = 1;
-		y = 0;
-		visible = true;
-		active = true;
-		var globalVolume:Int = Math.round(FlxG.sound.volume * 10);
-
-		SaveData.saveSettings.data.volume = FlxG.sound.volume;
-		SaveData.saveSettings.data.muted  = FlxG.sound.muted;
-		SaveData.saveSettings.flush();
-
-		if (FlxG.sound.muted)
-			globalVolume = 0;
-		
-		for (i in 0..._bars.length)
-		{
-			if (i < globalVolume)
-			{
-				_bars[i].alpha = 1;
-			}
-			else
-			{
-				_bars[i].alpha = 0.5;
-			}
-		}
-	}
-
-	public function screenCenter():Void
-	{
-		scaleX = _defaultScale;
-		scaleY = _defaultScale;
-
-		x = (0.5 * (Lib.current.stage.stageWidth - _width * _defaultScale) - FlxG.game.x);
-	}
+  /**
+   * Makes the little volume tray slide out.
+   *
+   * @param	up Whether the volume is increasing.
+   */
+    public function show(up:Bool = false):Void
+    {
+      _timer = 1;
+      lerpYPos = 10;
+      visible = true;
+      active = true;
+      var globalVolume:Int = Math.round(FlxG.sound.volume * 10);
+  
+      if (FlxG.sound.muted || FlxG.sound.volume == 0)
+      {
+        globalVolume = 0;
+      }
+  
+      if (!silent)
+      {
+        var sound = up ? volumeUpSound : volumeDownSound;
+  
+        if (globalVolume == 10) sound = volumeMaxSound;
+  
+        if (sound != null) FlxG.sound.load(sound).play().volume = 0.4;
+      }
+  
+      for (i in 0..._bars.length)
+      {
+        if (i < globalVolume)
+        {
+          _bars[i].visible = true;
+        }
+        else
+        {
+          _bars[i].visible = false;
+        }
+      }
+    }
+    
+  public function screenCenter():Void
+    {
+      scaleX = _defaultScale;
+      scaleY = _defaultScale;
+  
+      x = (0.5 * (Lib.current.stage.stageWidth - _width * _defaultScale) - FlxG.game.x);
+    }
 }
-#end

@@ -367,4 +367,7 @@ class CoolUtil
 
 		return daList;
 	}
+	public static function vsliceLerp(base:Float, target:Float, ratio:Float):Float
+
+		return base + ratio * (FlxG.elapsed / (1 / 60)) * (target - base);
 }
