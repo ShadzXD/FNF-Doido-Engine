@@ -307,7 +307,7 @@ class Character extends FlxAnimate
 				this.curChar = curChar;
 			
 			case "bf-dead":
-				doidoChar.spritesheet += 'bf/BOYFRIEND';
+				doidoChar.spritesheet += 'bf/BOYFRIEND_DEAD';
 				doidoChar.anims = [
 					['firstDeath', 		"BF dies", 			24, false],
 					['deathLoop', 		"BF Dead Loop", 	24, true],

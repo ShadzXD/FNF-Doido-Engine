@@ -146,7 +146,7 @@ class PlayState extends MusicBeatState
 	var camOffsetNoteHit:FlxPoint;
 
 	//EDIT THIS VALUE TO CHANGE HOW MUCH THE CAMERA MOVES ON NOTE HIT!
-	public static var moveValue:Int = 30;
+	public static var moveValue:Int = 25;
 
 	// This map holds which shaders are loaded, to help with disabling and enabling them in the options!
 	var tempShaders:Map<String,Array<BitmapFilter>> = [
@@ -786,11 +786,11 @@ class PlayState extends MusicBeatState
 			switch(CoolUtil.getDirection(note.noteData))
 			{
 				case 'left':
-					noteCameraMovement(-moveValue ,0);
+					noteCameraMovement(-moveValue, 0);
 				case 'down':
 					noteCameraMovement(0, moveValue);
 				case 'up':
-					noteCameraMovement( 0, -moveValue );
+					noteCameraMovement(0, -moveValue);
 				case 'right':
 					noteCameraMovement(moveValue, 0);
 			}
@@ -806,13 +806,7 @@ class PlayState extends MusicBeatState
 	function noteCameraMovement(_x:Float, _y:Float)
 	{
 		if(camMoveTween != null) camMoveTween.cancel();
-		//if(camMoveTween != null) camMoveTween.cancel();
-		camMoveTween =	FlxTween.tween(camOffsetNoteHit, {x:_x,y:_y}, 0.7, {ease: FlxEase.expoOut, onComplete:function(twn:FlxTween)
-		{
-
-		}
-		
-		});
+		camMoveTween =	FlxTween.tween(camOffsetNoteHit, {x:_x,y:_y}, 0.7, {ease: FlxEase.expoOut});
 
 	}
 	function onNoteMiss(note:Note, strumline:Strumline, ghostTap:Bool = false)
