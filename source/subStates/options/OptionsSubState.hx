@@ -43,7 +43,8 @@ class OptionsSubState extends MusicBeatSubState
             "Discord RPC",
             #end
             "Shaders",
-            "Low Quality"
+            "Low Quality",
+            "Camera Movement"
         ],
 		"gameplay" => [
 			"Ghost Tapping",

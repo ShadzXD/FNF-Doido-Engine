@@ -161,7 +161,7 @@ class HudDoido extends HudClass
 				icon.setAnim(health);
 
 			icon.updateHitbox();
-							if(!icon.isPlayer)
+			if(!icon.isPlayer)
 				icon.setAnim(2 - health);
 			else
 				icon.setAnim(health);

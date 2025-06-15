@@ -76,6 +76,11 @@ class SaveData
 			CHECKMARK,
 			"Disables extra assets that might make very low end computers lag."
 		],
+			"Camera Movement" => [
+			true,
+			CHECKMARK,
+			"Disables extra Camera movement when hitting a note."
+		],
 		/*
 		*
 		* GAMEPLAY

@@ -20,7 +20,6 @@ import flixel.math.FlxMath;
 import flixel.math.FlxPoint;
 import flixel.math.FlxRect;
 import flixel.sound.FlxSound;
-import flixel.text.FlxText;
 import flixel.tweens.FlxTween;
 import flixel.tweens.FlxEase;
 import flixel.util.FlxTimer;
@@ -208,8 +207,9 @@ class PlayState extends MusicBeatState
 		super.create();
 		instance = this;
 
-		while(FlxG.sound.music.playing)
-			CoolUtil.playMusic();
+		if (FlxG.sound.music.playing) FlxG.sound.music.stop();
+		
+		CoolUtil.playMusic();
 
 		resetStatics();
 
@@ -453,81 +453,7 @@ class PlayState extends MusicBeatState
 		if(hasCutscene() && !playedCutscene)
 		{
 			playedCutscene = true;
-			switch(SONG.song)
-			{
-				#if VIDEOS_ALLOWED
-				case 'useless':
-					startVideo("test");
-				#end
-
-				case 'thorns':
-					inCutscene = true;
-
-					#if TOUCH_CONTROLS
-					createPad("pause", [camOther]);
-					#end
-
-					CoolUtil.playMusic('dialogue/lunchbox-scary');
-					Paths.preloadSound('sounds/dialogue/senpai/senpai_dies');
-
-					var senpaiDies:FlxSound;
-					senpaiDies = new FlxSound();
-
-					var red = new FlxSprite().makeGraphic(FlxG.width * 2, FlxG.height * 2, 0xFFff1b31);
-					red.cameras = [camHUD];
-					red.scrollFactor.set();
-					red.screenCenter();
-					add(red);
-					
-					var spirit = new FlxSprite();
-					spirit.frames = Paths.getSparrowAtlas('cutscenes/thorns/senpaiCrazy');
-					spirit.animation.addByPrefix('dies', 'Senpai Pre Explosion', 24, false);
-					spirit.antialiasing = false;
-					spirit.scale.set(5,5);
-					spirit.updateHitbox();
-					spirit.cameras = [camHUD];
-					spirit.scrollFactor.set();
-					spirit.screenCenter();
-					spirit.x += 80;
-					spirit.y -= 20;
-					add(spirit);
-					
-					spirit.alpha = 0;
-
-					skipCallback = () -> {
-						inCutscene = false;
-
-						CoolUtil.flash(camHUD, 0.6, 0xFFff1b31, true);
-						remove(red);
-						remove(spirit);
-						remove(senpaiDies);
-
-						new FlxTimer().start(0.8, function(tmr:FlxTimer)
-						{
-							startDialogue(DialogueUtil.loadDialogue('thorns', songDiff));
-						});
-					};
-
-					pauseCallback = (isPause:Bool) -> {
-						if(isPause)
-							senpaiDies.pause();
-						else
-							senpaiDies.resume();
-					};
-					
-					new FlxTimer().start(0.6, function(tmr:FlxTimer)
-					{
-						spirit.animation.play('dies');
-						FlxTween.tween(spirit, {alpha: 1}, 0.5);
-						FlxTween.tween(spirit, {alpha: 0}, 1.0, {startDelay: 3.2});
-						
-						senpaiDies.loadEmbedded(Paths.sound('dialogue/senpai/senpai_dies'), false, true, skipCallback);
-						senpaiDies.play();
-					});
-					
-				default:
-					startDialogue(DialogueUtil.loadDialogue(SONG.song, songDiff));
-			}
+			cutsceneHandler();
 		}
 		else
 			startCountdown();
@@ -805,6 +731,7 @@ class PlayState extends MusicBeatState
 	var camMoveTween:FlxTween;
 	function noteCameraMovement(_x:Float, _y:Float)
 	{
+		if(!SaveData.data.get("Camera Movement")) return;
 		if(camMoveTween != null) camMoveTween.cancel();
 		camMoveTween =	FlxTween.tween(camOffsetNoteHit, {x:_x,y:_y}, 0.7, {ease: FlxEase.expoOut});
 
@@ -2059,5 +1986,84 @@ class PlayState extends MusicBeatState
 	{
 		for(script in loadedScripts)
 			script.set(name, value, allowOverride);
+	}
+	
+	function cutsceneHandler()
+	{
+			switch(SONG.song)
+			{
+				#if VIDEOS_ALLOWED
+				case 'useless':
+					startVideo("test");
+				#end
+
+				case 'thorns':
+					inCutscene = true;
+
+					#if TOUCH_CONTROLS
+					createPad("pause", [camOther]);
+					#end
+
+					CoolUtil.playMusic('dialogue/lunchbox-scary');
+					Paths.preloadSound('sounds/dialogue/senpai/senpai_dies');
+
+					var senpaiDies:FlxSound;
+					senpaiDies = new FlxSound();
+
+					var red = new FlxSprite().makeGraphic(FlxG.width * 2, FlxG.height * 2, 0xFFff1b31);
+					red.cameras = [camHUD];
+					red.scrollFactor.set();
+					red.screenCenter();
+					add(red);
+					
+					var spirit = new FlxSprite();
+					spirit.frames = Paths.getSparrowAtlas('cutscenes/thorns/senpaiCrazy');
+					spirit.animation.addByPrefix('dies', 'Senpai Pre Explosion', 24, false);
+					spirit.antialiasing = false;
+					spirit.scale.set(5,5);
+					spirit.updateHitbox();
+					spirit.cameras = [camHUD];
+					spirit.scrollFactor.set();
+					spirit.screenCenter();
+					spirit.x += 80;
+					spirit.y -= 20;
+					add(spirit);
+					
+					spirit.alpha = 0;
+
+					skipCallback = () -> {
+						inCutscene = false;
+
+						CoolUtil.flash(camHUD, 0.6, 0xFFff1b31, true);
+						remove(red);
+						remove(spirit);
+						remove(senpaiDies);
+
+						new FlxTimer().start(0.8, function(tmr:FlxTimer)
+						{
+							startDialogue(DialogueUtil.loadDialogue('thorns', songDiff));
+						});
+					};
+
+					pauseCallback = (isPause:Bool) -> {
+						if(isPause)
+							senpaiDies.pause();
+						else
+							senpaiDies.resume();
+					};
+					
+					new FlxTimer().start(0.6, function(tmr:FlxTimer)
+					{
+						spirit.animation.play('dies');
+						FlxTween.tween(spirit, {alpha: 1}, 0.5);
+						FlxTween.tween(spirit, {alpha: 0}, 1.0, {startDelay: 3.2});
+						
+						senpaiDies.loadEmbedded(Paths.sound('dialogue/senpai/senpai_dies'), false, true, skipCallback);
+						senpaiDies.play();
+					});
+					
+				default:
+					startDialogue(DialogueUtil.loadDialogue(SONG.song, songDiff));
+			}
 	}
 }
