@@ -158,7 +158,7 @@ class FreeplayState extends MusicBeatState
 
 		changeSelection();
 	}
-	var lastSaved:String;
+
 	override function update(elapsed:Float)
 	{
 		super.update(elapsed);
@@ -170,7 +170,7 @@ class FreeplayState extends MusicBeatState
 			changeDiff(-1);
 		if(Controls.justPressed(UI_RIGHT))
 			changeDiff(1);
-		
+
 		if(Controls.justPressed(RESET)) {
 			var curSong = songList[curSelected];
 			openSubState(new DeleteScoreSubState(curSong.name, curSong.diffs[curDiff]));
@@ -287,9 +287,6 @@ class ScoreCounter extends FlxGroup
 	public var bg:FlxSprite;
 
 	public var text:FlxText;
-		public var text2:FlxText;
-		public var text3:FlxText;
-
 	public var diffTxt:FlxText;
 
 	public var realValues:ScoreData;
@@ -309,10 +306,7 @@ class ScoreCounter extends FlxGroup
 		text.setFormat(Main.gFont, txtSize, 0xFFFFFFFF, LEFT);
 		//text.setBorderStyle(OUTLINE, FlxColor.BLACK, 1.5);
 		add(text);
-			text2 = new FlxText(0, 0, 0, "");
-		text2.setFormat(Main.gFont, txtSize, 0xFFFFFFFF, LEFT);
-		//text.setBorderStyle(OUTLINE, FlxColor.BLACK, 1.5);
-		add(text2);
+		
 		diffTxt = new FlxText(0,0,0,"< DURO >");
 		diffTxt.setFormat(Main.gFont, txtSize, 0xFFFFFFFF, LEFT);
 		add(diffTxt);
@@ -320,13 +314,26 @@ class ScoreCounter extends FlxGroup
 		realValues = {score: 0, accuracy: 0, misses: 0};
 		lerpValues = {score: 0, accuracy: 0, misses: 0};
 	}
-	var lastsavedSong:String;
+
 	override function update(elapsed:Float)
 	{
 		super.update(elapsed);
+		text.text = "";
 
+		text.text +=   "HIGHSCORE: " + FlxStringUtil.formatMoney(Math.floor(lerpValues.score), false, true);
+		text.text += "\nACCURACY:  " +(Math.floor(lerpValues.accuracy * 100) / 100) + "%" + ' [$rank]';
+		text.text += "\nMISSES:    " + Math.floor(lerpValues.misses);
 
+		lerpValues.score 	= FlxMath.lerp(lerpValues.score, 	realValues.score, 	 elapsed * 8);
+		lerpValues.accuracy = FlxMath.lerp(lerpValues.accuracy, realValues.accuracy, elapsed * 8);
+		lerpValues.misses 	= FlxMath.lerp(lerpValues.misses, 	realValues.misses, 	 elapsed * 8);
 
+		rank = Timings.getRank(
+			lerpValues.accuracy,
+			Math.floor(lerpValues.misses),
+			false,
+			lerpValues.accuracy == realValues.accuracy
+		);
 
 		if(Math.abs(lerpValues.score - realValues.score) <= 10)
 			lerpValues.score = realValues.score;
@@ -334,24 +341,6 @@ class ScoreCounter extends FlxGroup
 			lerpValues.accuracy = realValues.accuracy;
 		if(Math.abs(lerpValues.misses - realValues.misses) <= 0.4)
 			lerpValues.misses = realValues.misses;
-		
-		lerpValues.score 	= FlxMath.lerp(lerpValues.score, 	realValues.score, 	  elapsed * 8);
-		lerpValues.accuracy = FlxMath.lerp(lerpValues.accuracy, realValues.accuracy,elapsed *  8);
-		//lerpValues.misses 	= FlxMath.lerp(lerpValues.misses, 	realValues.misses, 	 elapsed * 8);
-
-		text.text =   "HIGHSCORE: " + FlxStringUtil.formatMoney(Math.floor(lerpValues.score), false, true);
-		text2.text = "\nACCURACY:  " +(Math.floor(lerpValues.accuracy * 100) / 100) + "%";
-		//text3.text= "\nMISSES:    " + Math.floor(lerpValues.misses);
-	}
-	public function updateDisplay(song:String, diff:String)
-	{
-		rank = Timings.getRank(
-			lerpValues.accuracy,
-			Math.floor(lerpValues.misses),
-			false,
-			lerpValues.accuracy == realValues.accuracy
-		);
-		realValues = Highscore.getScore('${song}-${diff}');
 
 		bg.scale.x = ((text.width + 8) / 32);
 		bg.scale.y = ((text.height + diffTxt.height + 8) / 32);
@@ -364,13 +353,15 @@ class ScoreCounter extends FlxGroup
 		bg.x = FlxG.width - bg.width;
 
 		text.x = FlxG.width - text.width - 4;
-		text2.x = text.x;
-
 		text.y = bg.y + 4;
-		text2.y = text.y + 1;
-
+		
 		diffTxt.x = bg.x + bg.width / 2 - diffTxt.width / 2;
-		diffTxt.y = text2.y + text2.height;
+		diffTxt.y = text.y + text.height;
+	}
+
+	public function updateDisplay(song:String, diff:String)
+	{
+		realValues = Highscore.getScore('${song}-${diff}');
 		diffTxt.text = '< ${diff.toUpperCase()} >';
 		update(0);
 	}
