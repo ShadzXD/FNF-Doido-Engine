@@ -837,12 +837,12 @@ class CharacterEditor extends MusicBeatState
 	override function draw()
 	{
 		super.draw();
-
+		if(char == null) return;
 		var offsets:DoidoPoint = char.animOffsets.get(char.curAnimName);
 		charBox.setGraphicSize(char.frameWidth * char.scale.x, char.frameHeight * char.scale.y);
 		charBox.updateHitbox();
-		charBox.x = char.x - (offsets.x * char.scale.x);
-		charBox.y = char.y - (offsets.y * char.scale.y);
+		charBox.x = char?.x - (offsets?.x * char?.scale.x);
+		charBox.y = char?.y - (offsets?.y * char?.scale.y);
 	}
 
 	override function update(elapsed:Float)
@@ -1333,8 +1333,8 @@ class AnimWindow extends DoidoWindow
 
 		if (ghost.animExists(anim))
 		{
-			ghostSlider.rangeMax = ghost.animation.curAnim.frames.length - 1;
-			ghostSlider.steps = ghost.animation.curAnim.frames.length;
+			ghostSlider.rangeMax = ghost.animation?.curAnim?.frames?.length - 1;
+			ghostSlider.steps = ghost.animation?.curAnim?.frames?.length;
 		}
 	}
 }

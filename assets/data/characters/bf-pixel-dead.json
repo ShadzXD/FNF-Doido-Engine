@@ -1,0 +1,50 @@
+{
+	"pixel": true,
+	"scale": {
+		"x": 6,
+		"y": 6
+	},
+	"anims": [
+		{
+			"flipY": false,
+			"loop": false,
+			"framerate": 24,
+			"prefix": "BF Dies pixel",
+			"flipX": false,
+			"indices": [],
+			"name": "firstDeath",
+			"offset": {
+				"x": 0,
+				"y": 0
+			}
+		},
+		{
+			"flipY": false,
+			"loop": false,
+			"framerate": 24,
+			"prefix": "Retry Loop",
+			"flipX": false,
+			"indices": [],
+			"name": "deathLoop",
+			"offset": {
+				"x": -5,
+				"y": -2
+			}
+		},
+		{
+			"loop": false,
+			"flipY": false,
+			"framerate": 24,
+			"prefix": "RETRY CONFIRM",
+			"offset": {
+				"x": -5,
+				"y": -2
+			},
+			"name": "deathConfirm",
+			"indices": [],
+			"flipX": false
+		}
+	],
+	"spritesheet": "bf-pixel/bfPixelsDEAD",
+	"flipX": true
+}

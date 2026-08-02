@@ -124,5 +124,6 @@
 		}
 	],
 	"spritesheet": "bf-pixel/bfPixel",
-	"flipX": true
+	"flipX": true,
+	"deathChar": "bf-pixel-dead"
 }
